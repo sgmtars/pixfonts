@@ -43,6 +43,9 @@ const ICONS = {
   close: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
   </svg>`,
+  plus: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+  </svg>`,
   undo: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
   </svg>`,
@@ -163,6 +166,7 @@ class PixFontsApp {
         <div class="logo">${ICONS.logo} PixFonts <span class="version">v${VERSION}</span></div>
         <button class="menu-toggle" aria-label="Menu">${ICONS.menu}</button>
         <nav class="menu-items">
+          <button id="btn-new">${ICONS.plus} New</button>
           <button id="btn-load">${ICONS.folder} Load JSON</button>
           <a href="example-pixfont-8x16.json" download class="menu-link">${ICONS.download} Example 8×16</a>
           <button id="btn-export-json">${ICONS.file} Export JSON</button>
@@ -184,13 +188,6 @@ class PixFontsApp {
             <button id="btn-redo" title="Redo">${ICONS.redo}</button>
             <button id="btn-copy" title="Copy glyph">${ICONS.copy}</button>
             <button id="btn-paste" title="Paste glyph">${ICONS.paste}</button>
-          </div>
-          <div class="grid-size">
-            <label>Size:</label>
-            <input type="number" id="grid-width" value="${this.project.gridWidth}" min="4" max="32">
-            <span>×</span>
-            <input type="number" id="grid-height" value="${this.project.gridHeight}" min="4" max="32">
-            <button id="btn-resize">Apply</button>
           </div>
         </section>
 
@@ -263,6 +260,31 @@ class PixFontsApp {
           </div>
           <div class="modal-footer">
             <button id="btn-save-metadata" class="btn-primary">Save Metadata</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="new-font-modal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content modal-small">
+          <div class="modal-header">
+            <h2>New Font</h2>
+            <button class="modal-close" id="btn-close-new">${ICONS.close}</button>
+          </div>
+          <div class="modal-body">
+            <p class="modal-warning">This will erase the current font. Make sure to export it first if you want to keep it.</p>
+            <div class="form-group">
+              <label for="new-width">Grid Width</label>
+              <input type="number" id="new-width" value="8" min="4" max="32">
+            </div>
+            <div class="form-group">
+              <label for="new-height">Grid Height</label>
+              <input type="number" id="new-height" value="12" min="4" max="32">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button id="btn-cancel-new" class="btn-secondary">Cancel</button>
+            <button id="btn-create-new" class="btn-primary">Create</button>
           </div>
         </div>
       </div>
@@ -364,6 +386,29 @@ class PixFontsApp {
     document.getElementById('btn-paste')!.addEventListener('click', () => this.pasteGlyph());
 
     // Menu
+    document.getElementById('btn-new')!.addEventListener('click', () => {
+      this.openNewFontModal();
+    });
+
+    document.getElementById('btn-close-new')!.addEventListener('click', () => {
+      this.closeNewFontModal();
+    });
+
+    document.getElementById('btn-cancel-new')!.addEventListener('click', () => {
+      this.closeNewFontModal();
+    });
+
+    document.getElementById('btn-create-new')!.addEventListener('click', () => {
+      this.createNewFont();
+    });
+
+    document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+      backdrop.addEventListener('click', () => {
+        this.closeSettingsModal();
+        this.closeNewFontModal();
+      });
+    });
+
     document.getElementById('btn-load')!.addEventListener('click', async () => {
       try {
         this.project = await importProjectFile();
@@ -399,10 +444,6 @@ class PixFontsApp {
       this.closeSettingsModal();
     });
 
-    document.querySelector('.modal-backdrop')!.addEventListener('click', () => {
-      this.closeSettingsModal();
-    });
-
     document.getElementById('btn-save-metadata')!.addEventListener('click', () => {
       this.saveMetadata();
     });
@@ -411,46 +452,6 @@ class PixFontsApp {
     document.querySelector('.menu-toggle')!.addEventListener('click', () => {
       this.menuOpen = !this.menuOpen;
       document.querySelector('.menu-items')!.classList.toggle('open', this.menuOpen);
-    });
-
-    // Grid resize
-    document.getElementById('btn-resize')!.addEventListener('click', () => {
-      const newWidth = parseInt((document.getElementById('grid-width') as HTMLInputElement).value, 10);
-      const newHeight = parseInt((document.getElementById('grid-height') as HTMLInputElement).value, 10);
-      
-      if (newWidth < 4 || newWidth > 32 || newHeight < 4 || newHeight > 32) {
-        this.showToast('Size must be 4-32');
-        return;
-      }
-
-      if (newWidth === this.project.gridWidth && newHeight === this.project.gridHeight) {
-        return;
-      }
-
-      // Resize all existing glyphs
-      for (const glyph of Object.values(this.project.glyphs)) {
-        const oldPixels = glyph.pixels;
-        const newPixels: boolean[][] = [];
-        
-        for (let row = 0; row < newHeight; row++) {
-          newPixels[row] = [];
-          for (let col = 0; col < newWidth; col++) {
-            newPixels[row][col] = oldPixels[row]?.[col] ?? false;
-          }
-        }
-        glyph.pixels = newPixels;
-      }
-
-      this.project.gridWidth = newWidth;
-      this.project.gridHeight = newHeight;
-      this.autoSave();
-      
-      // Re-render editor with new size
-      const glyph = getOrCreateGlyph(this.project, this.currentChar);
-      this.editor?.setGlyph(glyph);
-      this.setupEditor();
-      this.updatePreview();
-      this.showToast(`Resized to ${newWidth}×${newHeight}`);
     });
 
     // Preview
@@ -706,6 +707,45 @@ class PixFontsApp {
 
   private closeSettingsModal(): void {
     document.getElementById('settings-modal')!.classList.add('hidden');
+  }
+
+  private openNewFontModal(): void {
+    document.getElementById('new-font-modal')!.classList.remove('hidden');
+  }
+
+  private closeNewFontModal(): void {
+    document.getElementById('new-font-modal')!.classList.add('hidden');
+  }
+
+  private createNewFont(): void {
+    const newWidth = parseInt((document.getElementById('new-width') as HTMLInputElement).value, 10);
+    const newHeight = parseInt((document.getElementById('new-height') as HTMLInputElement).value, 10);
+    
+    if (newWidth < 4 || newWidth > 32 || newHeight < 4 || newHeight > 32) {
+      this.showToast('Size must be 4-32');
+      return;
+    }
+    
+    // Create new empty project with chosen resolution
+    this.project = {
+      name: 'PixFont',
+      version: '1.0',
+      gridWidth: newWidth,
+      gridHeight: newHeight,
+      baseline: Math.floor(newHeight * 0.8),
+      letterSpacing: 1,
+      glyphs: {},
+      metadata: createDefaultMetadata(),
+    };
+    
+    // Clear undo/redo stacks
+    this.undoStack.clear();
+    this.redoStack.clear();
+    
+    saveProject(this.project);
+    this.closeNewFontModal();
+    this.render();
+    this.showToast(`Created ${newWidth}×${newHeight} font`);
   }
 
   private saveMetadata(): void {
