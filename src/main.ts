@@ -747,7 +747,7 @@ class PixFontsApp {
   }
 
   private renderMarkdownLine(ctx: CanvasRenderingContext2D, line: string, offsetX: number, offsetY: number, lineScale: number, defaultColor: string): void {
-    const { gridWidth, gridHeight } = this.project;
+    const { gridWidth } = this.project;
     let charPos = 0;
     let i = 0;
     
