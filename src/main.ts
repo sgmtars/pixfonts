@@ -1,6 +1,6 @@
 import './style.css';
 import { PixFontProject, DEFAULT_CHARS, getOrCreateGlyph } from './types';
-import { loadProject, saveProject, exportProjectFile, importProjectFile } from './storage';
+import { loadProject, saveProject, importProjectFile } from './storage';
 import { PixelEditor } from './editor';
 import { exportTTF } from './export';
 
