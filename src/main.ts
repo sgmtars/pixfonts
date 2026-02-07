@@ -297,10 +297,27 @@ class PixFontsApp {
 
 new PixFontsApp();
 
-// Prevent pinch zoom globally
-document.addEventListener('gesturestart', (e) => e.preventDefault());
-document.addEventListener('gesturechange', (e) => e.preventDefault());
-document.addEventListener('gestureend', (e) => e.preventDefault());
+// Prevent pinch zoom globally (iOS Safari)
+document.addEventListener('gesturestart', (e) => {
+  e.preventDefault();
+  (e.target as HTMLElement)?.blur?.();
+}, { passive: false });
+
+document.addEventListener('gesturechange', (e) => {
+  e.preventDefault();
+}, { passive: false });
+
+document.addEventListener('gestureend', (e) => {
+  e.preventDefault();
+}, { passive: false });
+
+// Prevent multi-touch zoom
+let lastTouchEnd = 0;
+document.addEventListener('touchstart', (e) => {
+  if (e.touches.length > 1) {
+    e.preventDefault();
+  }
+}, { passive: false });
 
 document.addEventListener('touchmove', (e) => {
   if (e.touches.length > 1) {
@@ -308,8 +325,18 @@ document.addEventListener('touchmove', (e) => {
   }
 }, { passive: false });
 
-document.addEventListener('touchstart', (e) => {
-  if (e.touches.length > 1) {
+// Prevent double-tap zoom
+document.addEventListener('touchend', (e) => {
+  const now = Date.now();
+  if (now - lastTouchEnd <= 300) {
+    e.preventDefault();
+  }
+  lastTouchEnd = now;
+}, { passive: false });
+
+// Prevent zoom via ctrl+wheel (desktop)
+document.addEventListener('wheel', (e) => {
+  if (e.ctrlKey) {
     e.preventDefault();
   }
 }, { passive: false });
