@@ -17,7 +17,11 @@ export interface PixFontProject {
 }
 
 export const DEFAULT_CHARS = 
-  'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,;:!?\'"()-+=/\\@#$%&*[]{}|<>~`^_ ';
+  'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789' +
+  'ÁÉÍÓÚÜÑáéíóúüñ' +  // Spanish
+  'ÀÈÌÒÙàèìòùÂÊÎÔÛâêîôûÄËÏÖäëïö' +  // French/German
+  'ÃÕãõÇç' +  // Portuguese
+  '.,;:!?\'"()-+=/\\@#$%&*[]{}|<>~`^_ ';
 
 export function createEmptyProject(): PixFontProject {
   return {
