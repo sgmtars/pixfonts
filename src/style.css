@@ -274,7 +274,7 @@ body {
 
 .char-btn.has-content {
   color: var(--fg);
-  border-color: #666;
+  border-color: #999;
 }
 
 /* Preview Panel */
