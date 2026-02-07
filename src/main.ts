@@ -76,7 +76,7 @@ function tokenizeLine(line: string): Token[] {
   return tokens.length > 0 ? tokens : [{ text: line, color: SYNTAX_COLORS.default }];
 }
 import { PixFontProject, DEFAULT_CHARS, getOrCreateGlyph } from './types';
-import { loadProject, saveProject, importProjectFile, exportProjectFile } from './storage';
+import { loadProject, saveProject, importProjectFile, exportProjectFile, loadPreviewText, savePreviewText } from './storage';
 import { PixelEditor } from './editor';
 import { exportTTF } from './export';
 
@@ -145,7 +145,7 @@ class PixFontsApp {
               <option value="code">Code</option>
             </select>
           </div>
-          <textarea id="preview-text" placeholder="Preview text..." rows="3">Hello World</textarea>
+          <textarea id="preview-text" placeholder="Preview text..." rows="3">${this.escapeHtml(loadPreviewText())}</textarea>
           <div class="preview-output" id="preview-output"></div>
         </section>
       </main>
@@ -319,6 +319,8 @@ class PixFontsApp {
     document.getElementById('preview-text')!.addEventListener('input', () => {
       // Switch to custom when user types
       (document.getElementById('preview-preset') as HTMLSelectElement).value = 'custom';
+      const text = (document.getElementById('preview-text') as HTMLTextAreaElement).value;
+      savePreviewText(text);
       this.updatePreview();
     });
 
@@ -327,6 +329,7 @@ class PixFontsApp {
       const textarea = document.getElementById('preview-text') as HTMLTextAreaElement;
       if (preset !== 'custom' && PREVIEW_PRESETS[preset]) {
         textarea.value = PREVIEW_PRESETS[preset];
+        savePreviewText(textarea.value);
         this.updatePreview();
       }
     });
