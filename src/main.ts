@@ -2,6 +2,47 @@ import './style.css';
 
 declare const __BUILD_TIME__: string;
 
+// SVG Icons
+const ICONS = {
+  logo: `<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+    <rect x="2" y="2" width="6" height="6" rx="1"/><rect x="12" y="2" width="6" height="6" rx="1"/>
+    <rect x="2" y="12" width="6" height="6" rx="1"/><rect x="12" y="12" width="6" height="6" rx="1"/>
+  </svg>`,
+  menu: `<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+    <line x1="3" y1="5" x2="17" y2="5"/><line x1="3" y1="10" x2="17" y2="10"/><line x1="3" y1="15" x2="17" y2="15"/>
+  </svg>`,
+  save: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+    <polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
+  </svg>`,
+  folder: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+  </svg>`,
+  download: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+  </svg>`,
+  file: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+  </svg>`,
+  package: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+    <polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
+  </svg>`,
+  chevronLeft: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="15 18 9 12 15 6"/>
+  </svg>`,
+  chevronRight: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="9 18 15 12 9 6"/>
+  </svg>`,
+  copy: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+  </svg>`,
+  paste: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+  </svg>`,
+};
+
 const PREVIEW_PRESETS: Record<string, string> = {
   pangram: 'The quick brown fox jumps over the lazy dog.\nEL VELOZ MURCIÉLAGO HINDÚ COMÍA FELIZ CARDILLO Y KIWI.',
   literary: `En un lugar de la Mancha,
@@ -105,14 +146,14 @@ class PixFontsApp {
 
     app.innerHTML = `
       <header class="menu-bar">
-        <div class="logo">🔲 PixFonts <span class="version">v${VERSION}</span></div>
-        <button class="menu-toggle" aria-label="Menu">☰</button>
+        <div class="logo">${ICONS.logo} PixFonts <span class="version">v${VERSION}</span></div>
+        <button class="menu-toggle" aria-label="Menu">${ICONS.menu}</button>
         <nav class="menu-items">
-          <button id="btn-save">💾 Save</button>
-          <button id="btn-load">📂 Load JSON</button>
-          <a href="example-pixfont-8x16.json" download class="menu-link">📥 Example 8×16</a>
-          <button id="btn-export-json">📄 Export JSON</button>
-          <button id="btn-export">📦 Export TTF</button>
+          <button id="btn-save">${ICONS.save} Save</button>
+          <button id="btn-load">${ICONS.folder} Load JSON</button>
+          <a href="example-pixfont-8x16.json" download class="menu-link">${ICONS.download} Example 8×16</a>
+          <button id="btn-export-json">${ICONS.file} Export JSON</button>
+          <button id="btn-export">${ICONS.package} Export TTF</button>
         </nav>
       </header>
 
@@ -120,13 +161,13 @@ class PixFontsApp {
         <section class="editor-panel">
           <div id="editor-container"></div>
           <div class="char-nav">
-            <button id="btn-prev">◀</button>
+            <button id="btn-prev">${ICONS.chevronLeft}</button>
             <span class="current-char" id="current-char">${this.escapeHtml(this.currentChar)}</span>
-            <button id="btn-next">▶</button>
+            <button id="btn-next">${ICONS.chevronRight}</button>
           </div>
           <div class="char-actions">
-            <button id="btn-copy" title="Copy glyph">📋 Copy</button>
-            <button id="btn-paste" title="Paste glyph">📥 Paste</button>
+            <button id="btn-copy" title="Copy glyph">${ICONS.copy} Copy</button>
+            <button id="btn-paste" title="Paste glyph">${ICONS.paste} Paste</button>
           </div>
           <div class="grid-size">
             <label>Size:</label>

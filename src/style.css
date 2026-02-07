@@ -55,6 +55,34 @@ body {
 .logo {
   font-size: 1.25rem;
   font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logo svg,
+.menu-toggle svg,
+.menu-items button svg,
+.menu-items .menu-link svg,
+.char-nav button svg,
+.char-actions button svg {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.menu-items button,
+.menu-items .menu-link,
+.char-actions button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.char-nav button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .version {
