@@ -95,6 +95,12 @@ class PixFontsApp {
     });
   }
 
+  private hasGlyphContent(char: string): boolean {
+    const glyph = this.project.glyphs[char];
+    if (!glyph || !glyph.pixels) return false;
+    return glyph.pixels.some(row => row.some(p => p));
+  }
+
   private setupCharGrid(): void {
     const grid = document.getElementById('char-grid')!;
     grid.innerHTML = '';
@@ -102,18 +108,15 @@ class PixFontsApp {
     for (let i = 0; i < this.chars.length; i++) {
       const char = this.chars[i];
       const btn = document.createElement('button');
-      btn.className = 'char-btn' + (i === this.currentCharIndex ? ' selected' : '');
+      btn.className = 'char-btn';
+      btn.dataset.index = i.toString();
       btn.textContent = char === ' ' ? '␣' : char;
       btn.title = char === ' ' ? 'Space' : char;
-      
-      const glyph = this.project.glyphs[char];
-      if (glyph && glyph.pixels.some(row => row.some(p => p))) {
-        btn.classList.add('has-content');
-      }
-
       btn.addEventListener('click', () => this.selectChar(i));
       grid.appendChild(btn);
     }
+    
+    this.updateCharGrid();
   }
 
   private updateCharGrid(): void {
@@ -121,11 +124,14 @@ class PixFontsApp {
     const buttons = grid.querySelectorAll('.char-btn');
     
     buttons.forEach((btn, i) => {
-      btn.classList.toggle('selected', i === this.currentCharIndex);
       const char = this.chars[i];
-      const glyph = this.project.glyphs[char];
-      const hasContent = glyph && glyph.pixels.some(row => row.some(p => p));
-      btn.classList.toggle('has-content', hasContent);
+      const isSelected = i === this.currentCharIndex;
+      const hasContent = this.hasGlyphContent(char);
+      
+      // Clear and re-apply classes explicitly
+      btn.classList.remove('selected', 'has-content');
+      if (isSelected) btn.classList.add('selected');
+      if (hasContent) btn.classList.add('has-content');
     });
   }
 
