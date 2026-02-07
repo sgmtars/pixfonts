@@ -6,6 +6,19 @@ export interface Glyph {
   pixels: boolean[][];
 }
 
+export interface FontMetadata {
+  family: string;
+  version: string;
+  copyright: string;
+  designer: string;
+  designerUrl: string;
+  license: string;
+  licenseUrl: string;
+  description: string;
+  vendor: string;
+  vendorUrl: string;
+}
+
 export interface PixFontProject {
   name: string;
   version: string;
@@ -14,6 +27,7 @@ export interface PixFontProject {
   baseline: number;
   letterSpacing: number;
   glyphs: Record<string, Glyph>;
+  metadata?: FontMetadata;
 }
 
 export const DEFAULT_CHARS = 
@@ -22,6 +36,21 @@ export const DEFAULT_CHARS =
   'ÀÈÌÒÙàèìòùÂÊÎÔÛâêîôûÄËÏÖäëïö' +  // French/German
   'ÃÕãõÇç' +  // Portuguese
   '.,;:!?\'"()-+=/\\@#$%&*[]{}|<>~`^_ ';
+
+export function createDefaultMetadata(): FontMetadata {
+  return {
+    family: 'PixFont',
+    version: '1.0',
+    copyright: '',
+    designer: '',
+    designerUrl: '',
+    license: 'OFL-1.1',
+    licenseUrl: 'https://scripts.sil.org/OFL',
+    description: 'A pixel font created with PixFonts',
+    vendor: '',
+    vendorUrl: '',
+  };
+}
 
 export function createEmptyProject(): PixFontProject {
   return {
@@ -32,6 +61,7 @@ export function createEmptyProject(): PixFontProject {
     baseline: 8,
     letterSpacing: 1,
     glyphs: {},
+    metadata: createDefaultMetadata(),
   };
 }
 

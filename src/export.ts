@@ -1,12 +1,13 @@
 // TTF Export using opentype.js
 
 import opentype from 'opentype.js';
-import { PixFontProject } from './types';
+import { PixFontProject, createDefaultMetadata } from './types';
 
 const UNITS_PER_PIXEL = 100;
 
 export function exportTTF(project: PixFontProject): void {
-  const { name, gridWidth, gridHeight, baseline, letterSpacing, glyphs } = project;
+  const { gridWidth, gridHeight, baseline, letterSpacing, glyphs } = project;
+  const metadata = project.metadata || createDefaultMetadata();
   
   const unitsPerEm = gridHeight * UNITS_PER_PIXEL;
   const ascender = (gridHeight - baseline) * UNITS_PER_PIXEL;
@@ -63,14 +64,23 @@ export function exportTTF(project: PixFontProject): void {
     fontGlyphs.push(fontGlyph);
   }
 
-  // Create font
+  // Create font with metadata
   const font = new opentype.Font({
-    familyName: name,
+    familyName: metadata.family,
     styleName: 'Regular',
     unitsPerEm,
     ascender,
     descender,
     glyphs: fontGlyphs,
+    copyright: metadata.copyright || undefined,
+    description: metadata.description || undefined,
+    designer: metadata.designer || undefined,
+    designerURL: metadata.designerUrl || undefined,
+    manufacturer: metadata.vendor || undefined,
+    manufacturerURL: metadata.vendorUrl || undefined,
+    license: metadata.license || undefined,
+    licenseURL: metadata.licenseUrl || undefined,
+    version: `Version ${metadata.version}`,
   });
 
   // Download
@@ -79,7 +89,7 @@ export function exportTTF(project: PixFontProject): void {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `${name.toLowerCase().replace(/\s+/g, '-')}.ttf`;
+  a.download = `${metadata.family.toLowerCase().replace(/\s+/g, '-')}.ttf`;
   a.click();
   URL.revokeObjectURL(url);
 }

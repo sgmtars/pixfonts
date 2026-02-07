@@ -41,6 +41,12 @@ const ICONS = {
     <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
     <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
   </svg>`,
+  settings: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+  </svg>`,
+  close: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+  </svg>`,
 };
 
 const PREVIEW_PRESETS: Record<string, string> = {
@@ -116,7 +122,7 @@ function tokenizeLine(line: string): Token[] {
   
   return tokens.length > 0 ? tokens : [{ text: line, color: SYNTAX_COLORS.default }];
 }
-import { PixFontProject, DEFAULT_CHARS, getOrCreateGlyph } from './types';
+import { PixFontProject, DEFAULT_CHARS, getOrCreateGlyph, FontMetadata, createDefaultMetadata } from './types';
 import { loadProject, saveProject, importProjectFile, exportProjectFile, loadPreviewText, savePreviewText } from './storage';
 import { PixelEditor } from './editor';
 import { exportTTF } from './export';
@@ -140,6 +146,10 @@ class PixFontsApp {
     return this.chars[this.currentCharIndex];
   }
 
+  private getMetadata(): FontMetadata {
+    return this.project.metadata || createDefaultMetadata();
+  }
+
   private render(): void {
     const app = document.getElementById('app')!;
     const VERSION = __BUILD_TIME__;
@@ -154,6 +164,7 @@ class PixFontsApp {
           <a href="example-pixfont-8x16.json" download class="menu-link">${ICONS.download} Example 8×16</a>
           <button id="btn-export-json">${ICONS.file} Export JSON</button>
           <button id="btn-export">${ICONS.package} Export TTF</button>
+          <button id="btn-settings">${ICONS.settings} Metadata</button>
         </nav>
       </header>
 
@@ -195,6 +206,61 @@ class PixFontsApp {
           <div class="preview-output" id="preview-output"></div>
         </section>
       </main>
+
+      <div id="settings-modal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2>Font Metadata</h2>
+            <button class="modal-close" id="btn-close-settings">${ICONS.close}</button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="meta-family">Font Family</label>
+              <input type="text" id="meta-family" value="${this.escapeHtml(this.getMetadata().family)}" placeholder="MyPixelFont">
+            </div>
+            <div class="form-group">
+              <label for="meta-version">Version</label>
+              <input type="text" id="meta-version" value="${this.escapeHtml(this.getMetadata().version)}" placeholder="1.0">
+            </div>
+            <div class="form-group">
+              <label for="meta-copyright">Copyright</label>
+              <input type="text" id="meta-copyright" value="${this.escapeHtml(this.getMetadata().copyright)}" placeholder="© 2026 Your Name">
+            </div>
+            <div class="form-group">
+              <label for="meta-designer">Designer</label>
+              <input type="text" id="meta-designer" value="${this.escapeHtml(this.getMetadata().designer)}" placeholder="Your Name">
+            </div>
+            <div class="form-group">
+              <label for="meta-designer-url">Designer URL</label>
+              <input type="url" id="meta-designer-url" value="${this.escapeHtml(this.getMetadata().designerUrl)}" placeholder="https://yoursite.com">
+            </div>
+            <div class="form-group">
+              <label for="meta-description">Description</label>
+              <textarea id="meta-description" rows="2" placeholder="A pixel font for...">${this.escapeHtml(this.getMetadata().description)}</textarea>
+            </div>
+            <div class="form-group">
+              <label for="meta-license">License</label>
+              <input type="text" id="meta-license" value="${this.escapeHtml(this.getMetadata().license)}" placeholder="OFL-1.1">
+            </div>
+            <div class="form-group">
+              <label for="meta-license-url">License URL</label>
+              <input type="url" id="meta-license-url" value="${this.escapeHtml(this.getMetadata().licenseUrl)}" placeholder="https://scripts.sil.org/OFL">
+            </div>
+            <div class="form-group">
+              <label for="meta-vendor">Vendor</label>
+              <input type="text" id="meta-vendor" value="${this.escapeHtml(this.getMetadata().vendor)}" placeholder="Your Company">
+            </div>
+            <div class="form-group">
+              <label for="meta-vendor-url">Vendor URL</label>
+              <input type="url" id="meta-vendor-url" value="${this.escapeHtml(this.getMetadata().vendorUrl)}" placeholder="https://company.com">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button id="btn-save-metadata" class="btn-primary">Save Metadata</button>
+          </div>
+        </div>
+      </div>
     `;
 
     this.setupEditor();
@@ -317,6 +383,23 @@ class PixFontsApp {
         console.error('Export failed:', e);
         this.showToast('Export failed');
       }
+    });
+
+    // Settings modal
+    document.getElementById('btn-settings')!.addEventListener('click', () => {
+      this.openSettingsModal();
+    });
+
+    document.getElementById('btn-close-settings')!.addEventListener('click', () => {
+      this.closeSettingsModal();
+    });
+
+    document.querySelector('.modal-backdrop')!.addEventListener('click', () => {
+      this.closeSettingsModal();
+    });
+
+    document.getElementById('btn-save-metadata')!.addEventListener('click', () => {
+      this.saveMetadata();
     });
 
     // Mobile menu toggle
@@ -508,6 +591,50 @@ class PixFontsApp {
 
   private autoSave(): void {
     saveProject(this.project);
+  }
+
+  private openSettingsModal(): void {
+    const modal = document.getElementById('settings-modal')!;
+    modal.classList.remove('hidden');
+    
+    // Update form values from current metadata
+    const meta = this.getMetadata();
+    (document.getElementById('meta-family') as HTMLInputElement).value = meta.family;
+    (document.getElementById('meta-version') as HTMLInputElement).value = meta.version;
+    (document.getElementById('meta-copyright') as HTMLInputElement).value = meta.copyright;
+    (document.getElementById('meta-designer') as HTMLInputElement).value = meta.designer;
+    (document.getElementById('meta-designer-url') as HTMLInputElement).value = meta.designerUrl;
+    (document.getElementById('meta-description') as HTMLTextAreaElement).value = meta.description;
+    (document.getElementById('meta-license') as HTMLInputElement).value = meta.license;
+    (document.getElementById('meta-license-url') as HTMLInputElement).value = meta.licenseUrl;
+    (document.getElementById('meta-vendor') as HTMLInputElement).value = meta.vendor;
+    (document.getElementById('meta-vendor-url') as HTMLInputElement).value = meta.vendorUrl;
+  }
+
+  private closeSettingsModal(): void {
+    document.getElementById('settings-modal')!.classList.add('hidden');
+  }
+
+  private saveMetadata(): void {
+    this.project.metadata = {
+      family: (document.getElementById('meta-family') as HTMLInputElement).value || 'PixFont',
+      version: (document.getElementById('meta-version') as HTMLInputElement).value || '1.0',
+      copyright: (document.getElementById('meta-copyright') as HTMLInputElement).value,
+      designer: (document.getElementById('meta-designer') as HTMLInputElement).value,
+      designerUrl: (document.getElementById('meta-designer-url') as HTMLInputElement).value,
+      description: (document.getElementById('meta-description') as HTMLTextAreaElement).value,
+      license: (document.getElementById('meta-license') as HTMLInputElement).value,
+      licenseUrl: (document.getElementById('meta-license-url') as HTMLInputElement).value,
+      vendor: (document.getElementById('meta-vendor') as HTMLInputElement).value,
+      vendorUrl: (document.getElementById('meta-vendor-url') as HTMLInputElement).value,
+    };
+    
+    // Also update project name to match family
+    this.project.name = this.project.metadata.family;
+    
+    this.autoSave();
+    this.closeSettingsModal();
+    this.showToast('Metadata saved!');
   }
 
   private showToast(message: string): void {
