@@ -236,6 +236,7 @@ Pixel at (x, y) with pixel size S:
 - Kerning pairs editor
 - Bezier curve editing (this is a *pixel* font editor)
 - Backend/accounts/cloud save
+- Path optimization (merging adjacent pixels into complex shapes) — future nice-to-have
 
 ---
 
