@@ -43,6 +43,12 @@ const ICONS = {
   close: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
   </svg>`,
+  undo: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+  </svg>`,
+  redo: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10"/>
+  </svg>`,
 };
 
 const PREVIEW_PRESETS: Record<string, string> = {
@@ -130,6 +136,8 @@ class PixFontsApp {
   private editor: PixelEditor | null = null;
   private menuOpen: boolean = false;
   private clipboard: boolean[][] | null = null;
+  private undoStack: Map<string, boolean[][][]> = new Map();
+  private redoStack: Map<string, boolean[][][]> = new Map();
 
   constructor() {
     this.project = loadProject();
@@ -172,8 +180,10 @@ class PixFontsApp {
             <button id="btn-next">${ICONS.chevronRight}</button>
           </div>
           <div class="char-actions">
-            <button id="btn-copy" title="Copy glyph">${ICONS.copy} Copy</button>
-            <button id="btn-paste" title="Paste glyph">${ICONS.paste} Paste</button>
+            <button id="btn-undo" title="Undo">${ICONS.undo}</button>
+            <button id="btn-redo" title="Redo">${ICONS.redo}</button>
+            <button id="btn-copy" title="Copy glyph">${ICONS.copy}</button>
+            <button id="btn-paste" title="Paste glyph">${ICONS.paste}</button>
           </div>
           <div class="grid-size">
             <label>Size:</label>
@@ -282,6 +292,9 @@ class PixFontsApp {
         this.updateCharGrid();
         this.updatePreview();
       },
+      onStrokeStart: () => {
+        this.saveUndoState();
+      },
     });
   }
 
@@ -345,6 +358,8 @@ class PixFontsApp {
     });
 
     // Copy/Paste
+    document.getElementById('btn-undo')!.addEventListener('click', () => this.undo());
+    document.getElementById('btn-redo')!.addEventListener('click', () => this.redo());
     document.getElementById('btn-copy')!.addEventListener('click', () => this.copyGlyph());
     document.getElementById('btn-paste')!.addEventListener('click', () => this.pasteGlyph());
 
@@ -474,6 +489,12 @@ class PixFontsApp {
       } else if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
         e.preventDefault();
         this.pasteGlyph();
+      } else if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        this.undo();
+      } else if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+        e.preventDefault();
+        this.redo();
       }
     });
   }
@@ -493,6 +514,8 @@ class PixFontsApp {
       return;
     }
     
+    this.saveUndoState();
+    
     const glyph = getOrCreateGlyph(this.project, this.currentChar);
     const { gridWidth, gridHeight } = this.project;
     
@@ -508,6 +531,86 @@ class PixFontsApp {
     this.updateCharGrid();
     this.updatePreview();
     this.showToast(`Pasted to "${this.currentChar}"`);
+  }
+
+  private saveUndoState(): void {
+    const char = this.currentChar;
+    const glyph = this.project.glyphs[char];
+    if (!glyph) return;
+    
+    // Deep copy current state
+    const state = glyph.pixels.map(row => [...row]);
+    
+    // Get or create undo stack for this char
+    if (!this.undoStack.has(char)) {
+      this.undoStack.set(char, []);
+    }
+    const stack = this.undoStack.get(char)!;
+    stack.push(state);
+    
+    // Limit stack size to 50
+    if (stack.length > 50) {
+      stack.shift();
+    }
+    
+    // Clear redo stack when new action is made
+    this.redoStack.set(char, []);
+  }
+
+  private undo(): void {
+    const char = this.currentChar;
+    const undoStack = this.undoStack.get(char);
+    
+    if (!undoStack || undoStack.length === 0) {
+      this.showToast('Nothing to undo');
+      return;
+    }
+    
+    const glyph = this.project.glyphs[char];
+    if (!glyph) return;
+    
+    // Save current state to redo stack
+    if (!this.redoStack.has(char)) {
+      this.redoStack.set(char, []);
+    }
+    this.redoStack.get(char)!.push(glyph.pixels.map(row => [...row]));
+    
+    // Restore previous state
+    const prevState = undoStack.pop()!;
+    glyph.pixels = prevState;
+    
+    this.editor?.setGlyph(glyph);
+    this.autoSave();
+    this.updateCharGrid();
+    this.updatePreview();
+  }
+
+  private redo(): void {
+    const char = this.currentChar;
+    const redoStack = this.redoStack.get(char);
+    
+    if (!redoStack || redoStack.length === 0) {
+      this.showToast('Nothing to redo');
+      return;
+    }
+    
+    const glyph = this.project.glyphs[char];
+    if (!glyph) return;
+    
+    // Save current state to undo stack
+    if (!this.undoStack.has(char)) {
+      this.undoStack.set(char, []);
+    }
+    this.undoStack.get(char)!.push(glyph.pixels.map(row => [...row]));
+    
+    // Restore redo state
+    const nextState = redoStack.pop()!;
+    glyph.pixels = nextState;
+    
+    this.editor?.setGlyph(glyph);
+    this.autoSave();
+    this.updateCharGrid();
+    this.updatePreview();
   }
 
   private updatePreview(): void {

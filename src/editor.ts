@@ -6,12 +6,14 @@ export interface EditorOptions {
   container: HTMLElement;
   glyph: Glyph;
   onChange: () => void;
+  onStrokeStart?: () => void;
 }
 
 export class PixelEditor {
   private container: HTMLElement;
   private glyph: Glyph;
   private onChange: () => void;
+  private onStrokeStart: (() => void) | undefined;
   private grid: HTMLDivElement;
   private painting: boolean = false;
   private paintValue: boolean = true;
@@ -20,6 +22,7 @@ export class PixelEditor {
     this.container = options.container;
     this.glyph = options.glyph;
     this.onChange = options.onChange;
+    this.onStrokeStart = options.onStrokeStart;
     this.grid = document.createElement('div');
     this.grid.className = 'pixel-grid';
     this.render();
@@ -88,6 +91,7 @@ export class PixelEditor {
     e.preventDefault();
     const cell = this.getCellFromEvent(e);
     if (cell) {
+      this.onStrokeStart?.();
       this.painting = true;
       const row = parseInt(cell.dataset.row!, 10);
       const col = parseInt(cell.dataset.col!, 10);
@@ -113,6 +117,7 @@ export class PixelEditor {
     const touch = e.touches[0];
     const cell = this.getCellFromEvent(touch);
     if (cell) {
+      this.onStrokeStart?.();
       this.painting = true;
       const row = parseInt(cell.dataset.row!, 10);
       const col = parseInt(cell.dataset.col!, 10);
