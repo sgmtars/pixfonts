@@ -206,16 +206,19 @@ body {
   gap: 0.5rem;
 }
 
-.preview-panel input {
+.preview-panel textarea {
   background: var(--bg-light);
   border: 1px solid #444;
   color: var(--fg);
   padding: 0.75rem;
   border-radius: 8px;
   font-size: 1rem;
+  resize: vertical;
+  min-height: 60px;
+  font-family: inherit;
 }
 
-.preview-panel input:focus {
+.preview-panel textarea:focus {
   outline: none;
   border-color: var(--accent);
 }
@@ -225,9 +228,10 @@ body {
   border-radius: 8px;
   padding: 1rem;
   min-height: 60px;
-  overflow-x: auto;
+  max-height: 200px;
+  overflow: auto;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .preview-output canvas {

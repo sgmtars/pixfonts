@@ -54,7 +54,7 @@ class PixFontsApp {
         </section>
 
         <section class="preview-panel">
-          <input type="text" id="preview-text" value="Hello World" placeholder="Preview text...">
+          <textarea id="preview-text" placeholder="Preview text..." rows="2">Hello World</textarea>
           <div class="preview-output" id="preview-output"></div>
         </section>
       </main>
@@ -194,31 +194,39 @@ class PixFontsApp {
   }
 
   private updatePreview(): void {
-    const text = (document.getElementById('preview-text') as HTMLInputElement)?.value || '';
+    const text = (document.getElementById('preview-text') as HTMLTextAreaElement)?.value || '';
     const output = document.getElementById('preview-output')!;
     output.innerHTML = '';
 
     const { gridWidth, gridHeight } = this.project;
-    const canvas = document.createElement('canvas');
     const scale = 3;
-    canvas.width = text.length * (gridWidth + 1) * scale;
-    canvas.height = gridHeight * scale;
+    const lines = text.split('\n');
+    const maxLineLength = Math.max(...lines.map(l => l.length), 1);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = maxLineLength * (gridWidth + 1) * scale;
+    canvas.height = lines.length * (gridHeight + 2) * scale;
     const ctx = canvas.getContext('2d')!;
 
     ctx.fillStyle = '#1a1a2e';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = '#eee';
 
-    for (let i = 0; i < text.length; i++) {
-      const char = text[i];
-      const glyph = this.project.glyphs[char];
-      if (!glyph) continue;
+    for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
+      const line = lines[lineIdx];
+      const offsetY = lineIdx * (gridHeight + 2) * scale;
 
-      const offsetX = i * (gridWidth + 1) * scale;
-      for (let row = 0; row < glyph.pixels.length; row++) {
-        for (let col = 0; col < glyph.pixels[row].length; col++) {
-          if (glyph.pixels[row][col]) {
-            ctx.fillRect(offsetX + col * scale, row * scale, scale, scale);
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        const glyph = this.project.glyphs[char];
+        if (!glyph) continue;
+
+        const offsetX = i * (gridWidth + 1) * scale;
+        for (let row = 0; row < glyph.pixels.length; row++) {
+          for (let col = 0; col < glyph.pixels[row].length; col++) {
+            if (glyph.pixels[row][col]) {
+              ctx.fillRect(offsetX + col * scale, offsetY + row * scale, scale, scale);
+            }
           }
         }
       }
