@@ -11,10 +11,6 @@ const ICONS = {
   menu: `<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
     <line x1="3" y1="5" x2="17" y2="5"/><line x1="3" y1="10" x2="17" y2="10"/><line x1="3" y1="15" x2="17" y2="15"/>
   </svg>`,
-  save: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-    <polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
-  </svg>`,
   folder: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
   </svg>`,
@@ -159,7 +155,6 @@ class PixFontsApp {
         <div class="logo">${ICONS.logo} PixFonts <span class="version">v${VERSION}</span></div>
         <button class="menu-toggle" aria-label="Menu">${ICONS.menu}</button>
         <nav class="menu-items">
-          <button id="btn-save">${ICONS.save} Save</button>
           <button id="btn-load">${ICONS.folder} Load JSON</button>
           <a href="example-pixfont-8x16.json" download class="menu-link">${ICONS.download} Example 8×16</a>
           <button id="btn-export-json">${ICONS.file} Export JSON</button>
@@ -354,11 +349,6 @@ class PixFontsApp {
     document.getElementById('btn-paste')!.addEventListener('click', () => this.pasteGlyph());
 
     // Menu
-    document.getElementById('btn-save')!.addEventListener('click', () => {
-      saveProject(this.project);
-      this.showToast('Saved!');
-    });
-
     document.getElementById('btn-load')!.addEventListener('click', async () => {
       try {
         this.project = await importProjectFile();
