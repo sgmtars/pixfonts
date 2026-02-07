@@ -290,13 +290,36 @@ class PixFontsApp {
           </div>
           <div class="modal-body">
             <p class="modal-warning">This will erase the current font. Make sure to export it first if you want to keep it.</p>
-            <div class="form-group">
-              <label for="new-width">Grid Width</label>
-              <input type="number" id="new-width" value="8" min="4" max="32">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="new-width">Width</label>
+                <input type="number" id="new-width" value="8" min="4" max="32">
+              </div>
+              <div class="form-group">
+                <label for="new-height">Height</label>
+                <input type="number" id="new-height" value="12" min="4" max="32">
+              </div>
             </div>
-            <div class="form-group">
-              <label for="new-height">Grid Height</label>
-              <input type="number" id="new-height" value="12" min="4" max="32">
+            <p class="form-section-title">Safe margins</p>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="margin-top">Top</label>
+                <input type="number" id="margin-top" value="2" min="0" max="16">
+              </div>
+              <div class="form-group">
+                <label for="margin-bottom">Bottom</label>
+                <input type="number" id="margin-bottom" value="1" min="0" max="16">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="margin-left">Left</label>
+                <input type="number" id="margin-left" value="1" min="0" max="16">
+              </div>
+              <div class="form-group">
+                <label for="margin-right">Right</label>
+                <input type="number" id="margin-right" value="1" min="0" max="16">
+              </div>
             </div>
           </div>
           <div class="modal-footer">
@@ -337,6 +360,7 @@ class PixFontsApp {
       onStrokeStart: () => {
         this.saveUndoState();
       },
+      margins: this.project.margins,
     });
   }
 
@@ -860,6 +884,10 @@ class PixFontsApp {
   private createNewFont(): void {
     const newWidth = parseInt((document.getElementById('new-width') as HTMLInputElement).value, 10);
     const newHeight = parseInt((document.getElementById('new-height') as HTMLInputElement).value, 10);
+    const marginTop = parseInt((document.getElementById('margin-top') as HTMLInputElement).value, 10) || 0;
+    const marginBottom = parseInt((document.getElementById('margin-bottom') as HTMLInputElement).value, 10) || 0;
+    const marginLeft = parseInt((document.getElementById('margin-left') as HTMLInputElement).value, 10) || 0;
+    const marginRight = parseInt((document.getElementById('margin-right') as HTMLInputElement).value, 10) || 0;
     
     if (newWidth < 4 || newWidth > 32 || newHeight < 4 || newHeight > 32) {
       this.showToast('Size must be 4-32');
@@ -876,6 +904,12 @@ class PixFontsApp {
       letterSpacing: 1,
       glyphs: {},
       metadata: createDefaultMetadata(),
+      margins: {
+        top: marginTop,
+        bottom: marginBottom,
+        left: marginLeft,
+        right: marginRight,
+      },
     };
     
     // Clear undo/redo stacks

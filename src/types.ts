@@ -19,6 +19,13 @@ export interface FontMetadata {
   vendorUrl: string;
 }
 
+export interface GridMargins {
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+}
+
 export interface PixFontProject {
   name: string;
   version: string;
@@ -28,6 +35,7 @@ export interface PixFontProject {
   letterSpacing: number;
   glyphs: Record<string, Glyph>;
   metadata?: FontMetadata;
+  margins?: GridMargins;
 }
 
 export const DEFAULT_CHARS = 

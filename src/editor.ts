@@ -2,11 +2,19 @@
 
 import { Glyph } from './types';
 
+export interface GridMargins {
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+}
+
 export interface EditorOptions {
   container: HTMLElement;
   glyph: Glyph;
   onChange: () => void;
   onStrokeStart?: () => void;
+  margins?: GridMargins;
 }
 
 export class PixelEditor {
@@ -14,6 +22,7 @@ export class PixelEditor {
   private glyph: Glyph;
   private onChange: () => void;
   private onStrokeStart: (() => void) | undefined;
+  private margins: GridMargins | undefined;
   private grid: HTMLDivElement;
   private painting: boolean = false;
   private paintValue: boolean = true;
@@ -23,8 +32,14 @@ export class PixelEditor {
     this.glyph = options.glyph;
     this.onChange = options.onChange;
     this.onStrokeStart = options.onStrokeStart;
+    this.margins = options.margins;
     this.grid = document.createElement('div');
     this.grid.className = 'pixel-grid';
+    this.render();
+  }
+
+  setMargins(margins: GridMargins | undefined): void {
+    this.margins = margins;
     this.render();
   }
 
@@ -47,7 +62,21 @@ export class PixelEditor {
     for (let row = 0; row < height; row++) {
       for (let col = 0; col < width; col++) {
         const cell = document.createElement('div');
-        cell.className = 'pixel-cell' + (this.glyph.pixels[row][col] ? ' active' : '');
+        let className = 'pixel-cell';
+        if (this.glyph.pixels[row][col]) className += ' active';
+        
+        // Check if cell is in margin area
+        if (this.margins) {
+          const inTopMargin = row < this.margins.top;
+          const inBottomMargin = row >= height - this.margins.bottom;
+          const inLeftMargin = col < this.margins.left;
+          const inRightMargin = col >= width - this.margins.right;
+          if (inTopMargin || inBottomMargin || inLeftMargin || inRightMargin) {
+            className += ' margin-cell';
+          }
+        }
+        
+        cell.className = className;
         cell.dataset.row = row.toString();
         cell.dataset.col = col.toString();
         this.grid.appendChild(cell);
