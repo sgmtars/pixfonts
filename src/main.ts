@@ -86,6 +86,7 @@ class PixFontsApp {
   private chars: string[];
   private editor: PixelEditor | null = null;
   private menuOpen: boolean = false;
+  private clipboard: boolean[][] | null = null;
 
   constructor() {
     this.project = loadProject();
@@ -337,7 +338,7 @@ class PixFontsApp {
 
   private setupKeyboardNav(): void {
     document.addEventListener('keydown', (e) => {
-      if (e.target instanceof HTMLInputElement) return;
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
       
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
@@ -345,8 +346,46 @@ class PixFontsApp {
       } else if (e.key === 'ArrowRight') {
         e.preventDefault();
         this.selectChar((this.currentCharIndex + 1) % this.chars.length);
+      } else if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+        e.preventDefault();
+        this.copyGlyph();
+      } else if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+        e.preventDefault();
+        this.pasteGlyph();
       }
     });
+  }
+
+  private copyGlyph(): void {
+    const glyph = this.project.glyphs[this.currentChar];
+    if (glyph && glyph.pixels) {
+      // Deep copy the pixels array
+      this.clipboard = glyph.pixels.map(row => [...row]);
+      this.showToast(`Copied "${this.currentChar}"`);
+    }
+  }
+
+  private pasteGlyph(): void {
+    if (!this.clipboard) {
+      this.showToast('Nothing to paste');
+      return;
+    }
+    
+    const glyph = getOrCreateGlyph(this.project, this.currentChar);
+    const { gridWidth, gridHeight } = this.project;
+    
+    // Paste with size adaptation
+    for (let row = 0; row < gridHeight; row++) {
+      for (let col = 0; col < gridWidth; col++) {
+        glyph.pixels[row][col] = this.clipboard[row]?.[col] ?? false;
+      }
+    }
+    
+    this.editor?.setGlyph(glyph);
+    this.autoSave();
+    this.updateCharGrid();
+    this.updatePreview();
+    this.showToast(`Pasted to "${this.currentChar}"`);
   }
 
   private updatePreview(): void {
