@@ -109,6 +109,7 @@ class PixFontsApp {
         <nav class="menu-items">
           <button id="btn-save">💾 Save</button>
           <button id="btn-load">📂 Load JSON</button>
+          <a href="example-pixfont-8x16.json" download class="menu-link">📥 Example 8×16</a>
           <button id="btn-export-json">📄 Export JSON</button>
           <button id="btn-export">📦 Export TTF</button>
         </nav>
