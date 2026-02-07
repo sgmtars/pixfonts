@@ -2,6 +2,7 @@ import './style.css';
 import { PixFontProject, DEFAULT_CHARS, getOrCreateGlyph } from './types';
 import { loadProject, saveProject, exportProjectFile, importProjectFile } from './storage';
 import { PixelEditor } from './editor';
+import { exportTTF } from './export';
 
 class PixFontsApp {
   private project: PixFontProject;
@@ -153,8 +154,13 @@ class PixFontsApp {
     });
 
     document.getElementById('btn-export')!.addEventListener('click', () => {
-      this.showToast('TTF export coming soon!');
-      // TODO: Phase 4
+      try {
+        exportTTF(this.project);
+        this.showToast('TTF exported!');
+      } catch (e) {
+        console.error('Export failed:', e);
+        this.showToast('Export failed');
+      }
     });
 
     // Mobile menu toggle
