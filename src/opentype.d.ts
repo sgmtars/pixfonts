@@ -31,6 +31,18 @@ declare module 'opentype.js' {
     ascender: number;
     descender: number;
     glyphs: Glyph[];
+    // Optional name table entries
+    copyright?: string;
+    description?: string;
+    designer?: string;
+    designerURL?: string;
+    manufacturer?: string;
+    manufacturerURL?: string;
+    license?: string;
+    licenseURL?: string;
+    version?: string;
+    trademark?: string;
+    unitsPerEm2?: number;
   }
 
   export class Font {
