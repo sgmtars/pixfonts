@@ -169,14 +169,16 @@ body {
 
 .pixel-grid {
   display: grid;
-  grid-template-columns: repeat(var(--grid-cols, 8), var(--cell-size));
-  grid-template-rows: repeat(var(--grid-rows, 10), var(--cell-size));
+  grid-template-columns: repeat(var(--grid-cols, 8), var(--cell-size, 32px));
+  grid-template-rows: repeat(var(--grid-rows, 10), var(--cell-size, 32px));
   gap: var(--gap);
   background: var(--bg-light);
   padding: var(--gap);
   border-radius: 8px;
   touch-action: none;
   user-select: none;
+  max-width: calc(100vw - 32px);
+  margin: 0 auto;
 }
 
 .pixel-cell {

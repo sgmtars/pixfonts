@@ -36,6 +36,23 @@ export class PixelEditor {
     this.grid = document.createElement('div');
     this.grid.className = 'pixel-grid';
     this.render();
+    
+    // Re-render on resize to adjust cell size
+    window.addEventListener('resize', this.handleResize.bind(this));
+  }
+
+  private handleResize(): void {
+    this.updateCellSize();
+  }
+
+  private updateCellSize(): void {
+    const width = this.glyph.pixels[0]?.length || 8;
+    const viewportWidth = window.innerWidth;
+    const maxGridWidth = viewportWidth - 48;
+    const gap = 2;
+    const maxCellSize = Math.floor((maxGridWidth - (width + 1) * gap) / width);
+    const cellSize = Math.min(Math.max(maxCellSize, 16), 40);
+    this.grid.style.setProperty('--cell-size', `${cellSize}px`);
   }
 
   setMargins(margins: GridMargins | undefined): void {
@@ -56,8 +73,16 @@ export class PixelEditor {
     const height = this.glyph.pixels.length;
     const width = this.glyph.pixels[0]?.length || 8;
     
+    // Calculate cell size to fit viewport with margin
+    const viewportWidth = window.innerWidth;
+    const maxGridWidth = viewportWidth - 48; // 24px margin on each side
+    const gap = 2; // --gap value
+    const maxCellSize = Math.floor((maxGridWidth - (width + 1) * gap) / width);
+    const cellSize = Math.min(Math.max(maxCellSize, 16), 40); // min 16px, max 40px
+    
     this.grid.style.setProperty('--grid-cols', width.toString());
     this.grid.style.setProperty('--grid-rows', height.toString());
+    this.grid.style.setProperty('--cell-size', `${cellSize}px`);
 
     for (let row = 0; row < height; row++) {
       for (let col = 0; col < width; col++) {
