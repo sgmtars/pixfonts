@@ -65,6 +65,20 @@ un hidalgo de los de lanza en astillero.`,
   console.log(msg);
   return { ok: true };
 }`,
+  markdown: `# Heading 1
+## Heading 2
+### Heading 3
+
+This is **bold** and this is *italic*.
+
+- List item 1
+- List item 2
+- List item 3
+
+> A blockquote with
+> multiple lines.
+
+Inline \`code\` and more text.`,
 };
 
 // Syntax highlighting colors
@@ -176,24 +190,26 @@ class PixFontsApp {
       </header>
 
       <main class="workspace">
-        <section class="editor-panel">
-          <div id="editor-container"></div>
-          <div class="char-nav">
-            <button id="btn-prev">${ICONS.chevronLeft}</button>
-            <span class="current-char" id="current-char">${this.escapeHtml(this.currentChar)}</span>
-            <button id="btn-next">${ICONS.chevronRight}</button>
-          </div>
-          <div class="char-actions">
-            <button id="btn-undo" title="Undo">${ICONS.undo}</button>
-            <button id="btn-redo" title="Redo">${ICONS.redo}</button>
-            <button id="btn-copy" title="Copy glyph">${ICONS.copy}</button>
-            <button id="btn-paste" title="Paste glyph">${ICONS.paste}</button>
-          </div>
-        </section>
+        <div class="left-column">
+          <section class="editor-panel">
+            <div id="editor-container"></div>
+            <div class="char-nav">
+              <button id="btn-prev">${ICONS.chevronLeft}</button>
+              <span class="current-char" id="current-char">${this.escapeHtml(this.currentChar)}</span>
+              <button id="btn-next">${ICONS.chevronRight}</button>
+            </div>
+            <div class="char-actions">
+              <button id="btn-undo" title="Undo">${ICONS.undo}</button>
+              <button id="btn-redo" title="Redo">${ICONS.redo}</button>
+              <button id="btn-copy" title="Copy glyph">${ICONS.copy}</button>
+              <button id="btn-paste" title="Paste glyph">${ICONS.paste}</button>
+            </div>
+          </section>
 
-        <section class="grid-panel">
-          <div class="char-grid" id="char-grid"></div>
-        </section>
+          <section class="grid-panel">
+            <div class="char-grid" id="char-grid"></div>
+          </section>
+        </div>
 
         <section class="preview-panel">
           <div class="preview-controls">
@@ -202,9 +218,10 @@ class PixFontsApp {
               <option value="pangram">Pangram</option>
               <option value="literary">Literary</option>
               <option value="code">Code</option>
+              <option value="markdown">Markdown</option>
             </select>
           </div>
-          <textarea id="preview-text" placeholder="Preview text..." rows="3">${this.escapeHtml(loadPreviewText())}</textarea>
+          <textarea id="preview-text" placeholder="Preview text..." rows="5">${this.escapeHtml(loadPreviewText())}</textarea>
           <div class="preview-output" id="preview-output"></div>
         </section>
       </main>
@@ -624,21 +641,65 @@ class PixFontsApp {
     const scale = 3;
     const lines = text.split('\n');
     const maxLineLength = Math.max(...lines.map(l => l.length), 1);
+    const useMarkdown = preset === 'markdown';
     const useSyntaxHighlight = preset === 'code';
 
+    // Calculate canvas height based on content
+    let totalHeight = 0;
+    const lineHeights: number[] = [];
+    for (const line of lines) {
+      let lineScale = scale;
+      if (useMarkdown) {
+        if (line.startsWith('# ')) lineScale = scale * 2;
+        else if (line.startsWith('## ')) lineScale = scale * 1.5;
+        else if (line.startsWith('### ')) lineScale = scale * 1.25;
+      }
+      const h = (gridHeight + 2) * lineScale;
+      lineHeights.push(h);
+      totalHeight += h;
+    }
+
     const canvas = document.createElement('canvas');
-    canvas.width = maxLineLength * (gridWidth + 1) * scale;
-    canvas.height = lines.length * (gridHeight + 2) * scale;
+    canvas.width = maxLineLength * (gridWidth + 1) * scale * (useMarkdown ? 2 : 1);
+    canvas.height = totalHeight || (gridHeight + 2) * scale;
     const ctx = canvas.getContext('2d')!;
 
     ctx.fillStyle = '#1a1a2e';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+    let offsetY = 0;
     for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
-      const line = lines[lineIdx];
-      const offsetY = lineIdx * (gridHeight + 2) * scale;
+      let line = lines[lineIdx];
+      let lineScale = scale;
+      let color = '#eee';
+      let offsetX = 0;
 
-      if (useSyntaxHighlight) {
+      if (useMarkdown) {
+        // Parse markdown
+        if (line.startsWith('# ')) {
+          line = line.slice(2);
+          lineScale = scale * 2;
+          color = '#c084fc'; // purple for h1
+        } else if (line.startsWith('## ')) {
+          line = line.slice(3);
+          lineScale = scale * 1.5;
+          color = '#a78bfa'; // lighter purple for h2
+        } else if (line.startsWith('### ')) {
+          line = line.slice(4);
+          lineScale = scale * 1.25;
+          color = '#8b5cf6'; // violet for h3
+        } else if (line.startsWith('> ')) {
+          line = line.slice(2);
+          color = '#6b7280'; // gray for blockquote
+          offsetX = gridWidth * scale; // indent
+        } else if (line.startsWith('- ')) {
+          line = '• ' + line.slice(2);
+          color = '#eee';
+        }
+        
+        // Render markdown line with inline formatting
+        this.renderMarkdownLine(ctx, line, offsetX, offsetY, lineScale, color);
+      } else if (useSyntaxHighlight) {
         // Render with syntax highlighting
         const tokens = tokenizeLine(line);
         let charPos = 0;
@@ -648,11 +709,11 @@ class PixFontsApp {
             const char = token.text[i];
             const glyph = this.project.glyphs[char];
             if (glyph) {
-              const offsetX = charPos * (gridWidth + 1) * scale;
+              const charOffsetX = charPos * (gridWidth + 1) * scale;
               for (let row = 0; row < glyph.pixels.length; row++) {
                 for (let col = 0; col < glyph.pixels[row].length; col++) {
                   if (glyph.pixels[row][col]) {
-                    ctx.fillRect(offsetX + col * scale, offsetY + row * scale, scale, scale);
+                    ctx.fillRect(charOffsetX + col * scale, offsetY + row * scale, scale, scale);
                   }
                 }
               }
@@ -668,19 +729,93 @@ class PixFontsApp {
           const glyph = this.project.glyphs[char];
           if (!glyph) continue;
 
-          const offsetX = i * (gridWidth + 1) * scale;
+          const charOffsetX = i * (gridWidth + 1) * scale;
           for (let row = 0; row < glyph.pixels.length; row++) {
             for (let col = 0; col < glyph.pixels[row].length; col++) {
               if (glyph.pixels[row][col]) {
-                ctx.fillRect(offsetX + col * scale, offsetY + row * scale, scale, scale);
+                ctx.fillRect(charOffsetX + col * scale, offsetY + row * scale, scale, scale);
               }
             }
           }
         }
       }
+
+      offsetY += lineHeights[lineIdx];
     }
 
     output.appendChild(canvas);
+  }
+
+  private renderMarkdownLine(ctx: CanvasRenderingContext2D, line: string, offsetX: number, offsetY: number, lineScale: number, defaultColor: string): void {
+    const { gridWidth, gridHeight } = this.project;
+    let charPos = 0;
+    let i = 0;
+    
+    while (i < line.length) {
+      let color = defaultColor;
+      let char = line[i];
+      
+      // Check for **bold**
+      if (line.slice(i, i + 2) === '**') {
+        const end = line.indexOf('**', i + 2);
+        if (end !== -1) {
+          color = '#f9fafb'; // bright white for bold
+          for (let j = i + 2; j < end; j++) {
+            this.renderChar(ctx, line[j], offsetX + charPos * (gridWidth + 1) * lineScale, offsetY, lineScale, color);
+            charPos++;
+          }
+          i = end + 2;
+          continue;
+        }
+      }
+      
+      // Check for *italic*
+      if (char === '*' && line[i + 1] !== '*') {
+        const end = line.indexOf('*', i + 1);
+        if (end !== -1) {
+          color = '#a5b4fc'; // light blue for italic
+          for (let j = i + 1; j < end; j++) {
+            this.renderChar(ctx, line[j], offsetX + charPos * (gridWidth + 1) * lineScale, offsetY, lineScale, color);
+            charPos++;
+          }
+          i = end + 1;
+          continue;
+        }
+      }
+      
+      // Check for `code`
+      if (char === '`') {
+        const end = line.indexOf('`', i + 1);
+        if (end !== -1) {
+          color = '#fbbf24'; // amber for code
+          for (let j = i + 1; j < end; j++) {
+            this.renderChar(ctx, line[j], offsetX + charPos * (gridWidth + 1) * lineScale, offsetY, lineScale, color);
+            charPos++;
+          }
+          i = end + 1;
+          continue;
+        }
+      }
+      
+      // Regular character
+      this.renderChar(ctx, char, offsetX + charPos * (gridWidth + 1) * lineScale, offsetY, lineScale, color);
+      charPos++;
+      i++;
+    }
+  }
+
+  private renderChar(ctx: CanvasRenderingContext2D, char: string, x: number, y: number, scale: number, color: string): void {
+    const glyph = this.project.glyphs[char];
+    if (!glyph) return;
+    
+    ctx.fillStyle = color;
+    for (let row = 0; row < glyph.pixels.length; row++) {
+      for (let col = 0; col < glyph.pixels[row].length; col++) {
+        if (glyph.pixels[row][col]) {
+          ctx.fillRect(x + col * scale, y + row * scale, scale, scale);
+        }
+      }
+    }
   }
 
   private autoSave(): void {
