@@ -271,6 +271,26 @@ body {
   gap: 0.5rem;
 }
 
+.preview-controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.preview-controls select {
+  background: var(--bg-light);
+  border: 1px solid #444;
+  color: var(--fg);
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.preview-controls select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
 .preview-panel textarea {
   background: var(--bg-light);
   border: 1px solid #444;

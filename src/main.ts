@@ -1,6 +1,19 @@
 import './style.css';
 
 declare const __BUILD_TIME__: string;
+
+const PREVIEW_PRESETS: Record<string, string> = {
+  pangram: 'The quick brown fox jumps over the lazy dog.\nEL VELOZ MURCIÉLAGO HINDÚ COMÍA FELIZ CARDILLO Y KIWI.',
+  literary: `En un lugar de la Mancha,
+de cuyo nombre no quiero acordarme,
+no ha mucho tiempo que vivía
+un hidalgo de los de lanza en astillero.`,
+  code: `function hello(name) {
+  const msg = "Hello, " + name;
+  console.log(msg);
+  return { ok: true };
+}`,
+};
 import { PixFontProject, DEFAULT_CHARS, getOrCreateGlyph } from './types';
 import { loadProject, saveProject, importProjectFile, exportProjectFile } from './storage';
 import { PixelEditor } from './editor';
@@ -62,7 +75,15 @@ class PixFontsApp {
         </section>
 
         <section class="preview-panel">
-          <textarea id="preview-text" placeholder="Preview text..." rows="2">Hello World</textarea>
+          <div class="preview-controls">
+            <select id="preview-preset">
+              <option value="custom">Custom text</option>
+              <option value="pangram">Pangram</option>
+              <option value="literary">Literary</option>
+              <option value="code">Code</option>
+            </select>
+          </div>
+          <textarea id="preview-text" placeholder="Preview text..." rows="3">Hello World</textarea>
           <div class="preview-output" id="preview-output"></div>
         </section>
       </main>
@@ -234,7 +255,18 @@ class PixFontsApp {
 
     // Preview
     document.getElementById('preview-text')!.addEventListener('input', () => {
+      // Switch to custom when user types
+      (document.getElementById('preview-preset') as HTMLSelectElement).value = 'custom';
       this.updatePreview();
+    });
+
+    document.getElementById('preview-preset')!.addEventListener('change', (e) => {
+      const preset = (e.target as HTMLSelectElement).value;
+      const textarea = document.getElementById('preview-text') as HTMLTextAreaElement;
+      if (preset !== 'custom' && PREVIEW_PRESETS[preset]) {
+        textarea.value = PREVIEW_PRESETS[preset];
+        this.updatePreview();
+      }
     });
   }
 
