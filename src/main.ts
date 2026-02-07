@@ -47,6 +47,13 @@ class PixFontsApp {
             <span class="current-char" id="current-char">${this.escapeHtml(this.currentChar)}</span>
             <button id="btn-next">▶</button>
           </div>
+          <div class="grid-size">
+            <label>Size:</label>
+            <input type="number" id="grid-width" value="${this.project.gridWidth}" min="4" max="32">
+            <span>×</span>
+            <input type="number" id="grid-height" value="${this.project.gridHeight}" min="4" max="32">
+            <button id="btn-resize">Apply</button>
+          </div>
         </section>
 
         <section class="grid-panel">
@@ -171,6 +178,46 @@ class PixFontsApp {
     document.querySelector('.menu-toggle')!.addEventListener('click', () => {
       this.menuOpen = !this.menuOpen;
       document.querySelector('.menu-items')!.classList.toggle('open', this.menuOpen);
+    });
+
+    // Grid resize
+    document.getElementById('btn-resize')!.addEventListener('click', () => {
+      const newWidth = parseInt((document.getElementById('grid-width') as HTMLInputElement).value, 10);
+      const newHeight = parseInt((document.getElementById('grid-height') as HTMLInputElement).value, 10);
+      
+      if (newWidth < 4 || newWidth > 32 || newHeight < 4 || newHeight > 32) {
+        this.showToast('Size must be 4-32');
+        return;
+      }
+
+      if (newWidth === this.project.gridWidth && newHeight === this.project.gridHeight) {
+        return;
+      }
+
+      // Resize all existing glyphs
+      for (const glyph of Object.values(this.project.glyphs)) {
+        const oldPixels = glyph.pixels;
+        const newPixels: boolean[][] = [];
+        
+        for (let row = 0; row < newHeight; row++) {
+          newPixels[row] = [];
+          for (let col = 0; col < newWidth; col++) {
+            newPixels[row][col] = oldPixels[row]?.[col] ?? false;
+          }
+        }
+        glyph.pixels = newPixels;
+      }
+
+      this.project.gridWidth = newWidth;
+      this.project.gridHeight = newHeight;
+      this.autoSave();
+      
+      // Re-render editor with new size
+      const glyph = getOrCreateGlyph(this.project, this.currentChar);
+      this.editor?.setGlyph(glyph);
+      this.setupEditor();
+      this.updatePreview();
+      this.showToast(`Resized to ${newWidth}×${newHeight}`);
     });
 
     // Preview
