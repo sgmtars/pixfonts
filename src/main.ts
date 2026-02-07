@@ -142,7 +142,7 @@ function tokenizeLine(line: string): Token[] {
   return tokens.length > 0 ? tokens : [{ text: line, color: SYNTAX_COLORS.default }];
 }
 import { PixFontProject, DEFAULT_CHARS, getOrCreateGlyph, FontMetadata, createDefaultMetadata } from './types';
-import { loadProject, saveProject, importProjectFile, exportProjectFile, loadPreviewText, savePreviewText } from './storage';
+import { loadProject, saveProject, importProjectFile, exportProjectFile, loadPreviewText, savePreviewText, loadPreviewPreset, savePreviewPreset } from './storage';
 import { PixelEditor } from './editor';
 import { exportTTF } from './export';
 
@@ -310,6 +310,9 @@ class PixFontsApp {
     this.setupEditor();
     this.setupCharGrid();
     this.setupEvents();
+    
+    // Restore saved preset
+    (document.getElementById('preview-preset') as HTMLSelectElement).value = loadPreviewPreset();
     this.updatePreview();
   }
 
@@ -475,6 +478,7 @@ class PixFontsApp {
     document.getElementById('preview-text')!.addEventListener('input', () => {
       // Switch to custom when user types
       (document.getElementById('preview-preset') as HTMLSelectElement).value = 'custom';
+      savePreviewPreset('custom');
       const text = (document.getElementById('preview-text') as HTMLTextAreaElement).value;
       savePreviewText(text);
       this.updatePreview();
@@ -482,12 +486,13 @@ class PixFontsApp {
 
     document.getElementById('preview-preset')!.addEventListener('change', (e) => {
       const preset = (e.target as HTMLSelectElement).value;
+      savePreviewPreset(preset);
       const textarea = document.getElementById('preview-text') as HTMLTextAreaElement;
       if (preset !== 'custom' && PREVIEW_PRESETS[preset]) {
         textarea.value = PREVIEW_PRESETS[preset];
         savePreviewText(textarea.value);
-        this.updatePreview();
       }
+      this.updatePreview();
     });
   }
 

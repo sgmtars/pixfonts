@@ -4,6 +4,7 @@ import { PixFontProject, createEmptyProject } from './types';
 
 const STORAGE_KEY = 'pixfonts_project';
 const PREVIEW_TEXT_KEY = 'pixfonts_preview_text';
+const PREVIEW_PRESET_KEY = 'pixfonts_preview_preset';
 
 export function saveProject(project: PixFontProject): void {
   try {
@@ -40,6 +41,23 @@ export function loadPreviewText(): string {
     console.error('Failed to load preview text:', e);
   }
   return 'Hello World';
+}
+
+export function savePreviewPreset(preset: string): void {
+  try {
+    localStorage.setItem(PREVIEW_PRESET_KEY, preset);
+  } catch (e) {
+    console.error('Failed to save preview preset:', e);
+  }
+}
+
+export function loadPreviewPreset(): string {
+  try {
+    return localStorage.getItem(PREVIEW_PRESET_KEY) || 'custom';
+  } catch (e) {
+    console.error('Failed to load preview preset:', e);
+  }
+  return 'custom';
 }
 
 export function exportProjectFile(project: PixFontProject): void {
