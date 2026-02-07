@@ -2,7 +2,7 @@ import './style.css';
 
 declare const __BUILD_TIME__: string;
 import { PixFontProject, DEFAULT_CHARS, getOrCreateGlyph } from './types';
-import { loadProject, saveProject, importProjectFile } from './storage';
+import { loadProject, saveProject, importProjectFile, exportProjectFile } from './storage';
 import { PixelEditor } from './editor';
 import { exportTTF } from './export';
 
@@ -34,7 +34,8 @@ class PixFontsApp {
         <button class="menu-toggle" aria-label="Menu">☰</button>
         <nav class="menu-items">
           <button id="btn-save">💾 Save</button>
-          <button id="btn-load">📂 Load</button>
+          <button id="btn-load">📂 Load JSON</button>
+          <button id="btn-export-json">📄 Export JSON</button>
           <button id="btn-export">📦 Export TTF</button>
         </nav>
       </header>
@@ -162,6 +163,11 @@ class PixFontsApp {
       } catch (e) {
         console.error(e);
       }
+    });
+
+    document.getElementById('btn-export-json')!.addEventListener('click', () => {
+      exportProjectFile(this.project);
+      this.showToast('JSON exported!');
     });
 
     document.getElementById('btn-export')!.addEventListener('click', () => {
