@@ -366,7 +366,6 @@ function resetZoom() {
 
 // Monitor visualViewport for zoom and counter it
 if (window.visualViewport) {
-  let initialScale = window.visualViewport.scale;
   window.visualViewport.addEventListener('resize', () => {
     if (window.visualViewport!.scale > 1.01) {
       resetZoom();
