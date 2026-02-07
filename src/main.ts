@@ -340,3 +340,26 @@ document.addEventListener('wheel', (e) => {
     e.preventDefault();
   }
 }, { passive: false });
+
+// Force reset zoom on iOS Safari via meta viewport manipulation
+function resetZoom() {
+  const viewport = document.querySelector('meta[name="viewport"]');
+  if (viewport) {
+    viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+    setTimeout(() => {
+      viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+    }, 100);
+  }
+}
+
+// Monitor visualViewport for zoom and counter it
+if (window.visualViewport) {
+  let initialScale = window.visualViewport.scale;
+  window.visualViewport.addEventListener('resize', () => {
+    if (window.visualViewport!.scale > 1.01) {
+      resetZoom();
+      // Scroll to compensate
+      window.scrollTo(0, window.scrollY);
+    }
+  });
+}
