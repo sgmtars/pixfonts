@@ -41,6 +41,13 @@ body {
   font-weight: bold;
 }
 
+.version {
+  font-size: 0.7rem;
+  font-weight: normal;
+  color: var(--fg-dim);
+  margin-left: 0.5rem;
+}
+
 .menu-toggle {
   display: block;
   background: none;

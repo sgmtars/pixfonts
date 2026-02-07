@@ -1,4 +1,6 @@
 import './style.css';
+
+declare const __BUILD_TIME__: string;
 import { PixFontProject, DEFAULT_CHARS, getOrCreateGlyph } from './types';
 import { loadProject, saveProject, importProjectFile } from './storage';
 import { PixelEditor } from './editor';
@@ -24,9 +26,11 @@ class PixFontsApp {
 
   private render(): void {
     const app = document.getElementById('app')!;
+    const VERSION = __BUILD_TIME__;
+
     app.innerHTML = `
       <header class="menu-bar">
-        <div class="logo">🔲 PixFonts</div>
+        <div class="logo">🔲 PixFonts <span class="version">v${VERSION}</span></div>
         <button class="menu-toggle" aria-label="Menu">☰</button>
         <nav class="menu-items">
           <button id="btn-save">💾 Save</button>
