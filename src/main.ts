@@ -14,6 +14,67 @@ un hidalgo de los de lanza en astillero.`,
   return { ok: true };
 }`,
 };
+
+// Syntax highlighting colors
+const SYNTAX_COLORS: Record<string, string> = {
+  keyword: '#c678dd',    // purple
+  string: '#98c379',     // green
+  number: '#d19a66',     // orange
+  comment: '#5c6370',    // gray
+  function: '#61afef',   // blue
+  operator: '#56b6c2',   // cyan
+  default: '#eeeeee',    // white
+};
+
+interface Token {
+  text: string;
+  color: string;
+}
+
+function tokenizeLine(line: string): Token[] {
+  const tokens: Token[] = [];
+  const keywords = /\b(function|const|let|var|return|if|else|for|while|true|false|null|undefined|new|class|import|export|from|async|await)\b/g;
+  const strings = /(["'`])(?:(?!\1)[^\\]|\\.)*\1/g;
+  const numbers = /\b\d+\.?\d*\b/g;
+  const comments = /\/\/.*/g;
+  
+  // Simple tokenization - find all matches and sort by position
+  const matches: { start: number; end: number; text: string; color: string }[] = [];
+  
+  let match;
+  while ((match = keywords.exec(line)) !== null) {
+    matches.push({ start: match.index, end: match.index + match[0].length, text: match[0], color: SYNTAX_COLORS.keyword });
+  }
+  while ((match = strings.exec(line)) !== null) {
+    matches.push({ start: match.index, end: match.index + match[0].length, text: match[0], color: SYNTAX_COLORS.string });
+  }
+  while ((match = numbers.exec(line)) !== null) {
+    matches.push({ start: match.index, end: match.index + match[0].length, text: match[0], color: SYNTAX_COLORS.number });
+  }
+  while ((match = comments.exec(line)) !== null) {
+    matches.push({ start: match.index, end: match.index + match[0].length, text: match[0], color: SYNTAX_COLORS.comment });
+  }
+  
+  // Sort by start position
+  matches.sort((a, b) => a.start - b.start);
+  
+  // Build tokens, filling gaps with default color
+  let pos = 0;
+  for (const m of matches) {
+    if (m.start > pos) {
+      tokens.push({ text: line.slice(pos, m.start), color: SYNTAX_COLORS.default });
+    }
+    if (m.start >= pos) {
+      tokens.push({ text: m.text, color: m.color });
+      pos = m.end;
+    }
+  }
+  if (pos < line.length) {
+    tokens.push({ text: line.slice(pos), color: SYNTAX_COLORS.default });
+  }
+  
+  return tokens.length > 0 ? tokens : [{ text: line, color: SYNTAX_COLORS.default }];
+}
 import { PixFontProject, DEFAULT_CHARS, getOrCreateGlyph } from './types';
 import { loadProject, saveProject, importProjectFile, exportProjectFile } from './storage';
 import { PixelEditor } from './editor';
@@ -286,6 +347,7 @@ class PixFontsApp {
 
   private updatePreview(): void {
     const text = (document.getElementById('preview-text') as HTMLTextAreaElement)?.value || '';
+    const preset = (document.getElementById('preview-preset') as HTMLSelectElement)?.value || 'custom';
     const output = document.getElementById('preview-output')!;
     output.innerHTML = '';
 
@@ -293,6 +355,7 @@ class PixFontsApp {
     const scale = 3;
     const lines = text.split('\n');
     const maxLineLength = Math.max(...lines.map(l => l.length), 1);
+    const useSyntaxHighlight = preset === 'code';
 
     const canvas = document.createElement('canvas');
     canvas.width = maxLineLength * (gridWidth + 1) * scale;
@@ -301,22 +364,47 @@ class PixFontsApp {
 
     ctx.fillStyle = '#1a1a2e';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#eee';
 
     for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
       const line = lines[lineIdx];
       const offsetY = lineIdx * (gridHeight + 2) * scale;
 
-      for (let i = 0; i < line.length; i++) {
-        const char = line[i];
-        const glyph = this.project.glyphs[char];
-        if (!glyph) continue;
+      if (useSyntaxHighlight) {
+        // Render with syntax highlighting
+        const tokens = tokenizeLine(line);
+        let charPos = 0;
+        for (const token of tokens) {
+          ctx.fillStyle = token.color;
+          for (let i = 0; i < token.text.length; i++) {
+            const char = token.text[i];
+            const glyph = this.project.glyphs[char];
+            if (glyph) {
+              const offsetX = charPos * (gridWidth + 1) * scale;
+              for (let row = 0; row < glyph.pixels.length; row++) {
+                for (let col = 0; col < glyph.pixels[row].length; col++) {
+                  if (glyph.pixels[row][col]) {
+                    ctx.fillRect(offsetX + col * scale, offsetY + row * scale, scale, scale);
+                  }
+                }
+              }
+            }
+            charPos++;
+          }
+        }
+      } else {
+        // Render without highlighting
+        ctx.fillStyle = '#eee';
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+          const glyph = this.project.glyphs[char];
+          if (!glyph) continue;
 
-        const offsetX = i * (gridWidth + 1) * scale;
-        for (let row = 0; row < glyph.pixels.length; row++) {
-          for (let col = 0; col < glyph.pixels[row].length; col++) {
-            if (glyph.pixels[row][col]) {
-              ctx.fillRect(offsetX + col * scale, offsetY + row * scale, scale, scale);
+          const offsetX = i * (gridWidth + 1) * scale;
+          for (let row = 0; row < glyph.pixels.length; row++) {
+            for (let col = 0; col < glyph.pixels[row].length; col++) {
+              if (glyph.pixels[row][col]) {
+                ctx.fillRect(offsetX + col * scale, offsetY + row * scale, scale, scale);
+              }
             }
           }
         }
