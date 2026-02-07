@@ -21,9 +21,18 @@ PixFonts is a single-page web application for creating pixel-art style fonts. Us
 - opentype.js handles the complex font generation
 - No build complexity beyond Vite
 
+### Mobile-First
+
+- **Fully responsive**: usable on phones, tablets, and desktop
+- **Touch-friendly**: tap to toggle pixels, swipe to navigate characters
+- **Adaptive layout**: stacked on mobile, side-by-side on desktop
+- All features accessible without keyboard
+
 ---
 
 ## UI Layout
+
+### Desktop (side-by-side)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -45,6 +54,38 @@ PixFonts is a single-page web application for creating pixel-art style fonts. Us
 │  ████ █ █ ███   ███ █ █ █ ███ █ █   ████ ███ ███ █ █ █ █    │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+### Mobile (stacked)
+
+```
+┌─────────────────────────┐
+│  PixFonts    [☰ Menu]   │  ← Hamburger menu
+├─────────────────────────┤
+│                         │
+│    ┌───────────────┐    │
+│    │ ░ ░ █ █ ░ ░   │    │
+│    │ ░ █ ░ ░ █ ░   │    │
+│    │ █ █ █ █ █ █   │    │  ← Editor (full width)
+│    │ █ ░ ░ ░ ░ █   │    │
+│    │ █ ░ ░ ░ ░ █   │    │
+│    └───────────────┘    │
+│      [◀ A ▶] 8x10       │
+├─────────────────────────┤
+│  A B C D E F G H I J K  │
+│  L M N O P Q R S T U V  │  ← Character Grid (scrollable)
+│  W X Y Z 0 1 2 3 4 5 6  │
+├─────────────────────────┤
+│  Preview: "Hello"       │  ← Preview (collapsible)
+│  █ █ ███ █   █   ███    │
+└─────────────────────────┘
+```
+
+### Touch Interactions
+
+- **Tap**: Toggle single pixel
+- **Drag**: Paint multiple pixels (toggle mode follows first tap)
+- **Swipe left/right on editor**: Navigate characters
+- **Tap character in grid**: Select for editing
 
 ---
 
@@ -223,7 +264,6 @@ Pixel at (x, y) with pixel size S:
 - [ ] Undo/redo
 - [ ] Keyboard shortcuts
 - [ ] Settings modal
-- [ ] Mobile responsiveness (nice-to-have)
 - [ ] Import existing project file
 
 ---
