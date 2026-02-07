@@ -1,0 +1,35 @@
+:root {
+  --bg: #1a1a2e;
+  --fg: #eee;
+  --accent: #7c3aed;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  min-height: 100vh;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 1rem;
+}
+
+h1 {
+  font-size: 3rem;
+}
+
+a {
+  color: var(--accent);
+}
