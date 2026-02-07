@@ -124,6 +124,10 @@ class PixFontsApp {
             <span class="current-char" id="current-char">${this.escapeHtml(this.currentChar)}</span>
             <button id="btn-next">▶</button>
           </div>
+          <div class="char-actions">
+            <button id="btn-copy" title="Copy glyph">📋 Copy</button>
+            <button id="btn-paste" title="Paste glyph">📥 Paste</button>
+          </div>
           <div class="grid-size">
             <label>Size:</label>
             <input type="number" id="grid-width" value="${this.project.gridWidth}" min="4" max="32">
@@ -237,6 +241,10 @@ class PixFontsApp {
     document.getElementById('btn-next')!.addEventListener('click', () => {
       this.selectChar((this.currentCharIndex + 1) % this.chars.length);
     });
+
+    // Copy/Paste
+    document.getElementById('btn-copy')!.addEventListener('click', () => this.copyGlyph());
+    document.getElementById('btn-paste')!.addEventListener('click', () => this.pasteGlyph());
 
     // Menu
     document.getElementById('btn-save')!.addEventListener('click', () => {
