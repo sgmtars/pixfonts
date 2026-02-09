@@ -3,28 +3,29 @@
 import opentype from 'opentype.js';
 import { PixFontProject, createDefaultMetadata } from './types';
 
-const UNITS_PER_PIXEL = 100;
+const UNITS_PER_EM = 1000;
 
 export function exportTTF(project: PixFontProject): void {
-  const { gridWidth, gridHeight, baseline, letterSpacing, glyphs } = project;
+  const { gridWidth, gridHeight, baseline, glyphs } = project;
   const metadata = project.metadata || createDefaultMetadata();
-  
-  const unitsPerEm = gridHeight * UNITS_PER_PIXEL;
-  const ascender = (gridHeight - baseline) * UNITS_PER_PIXEL;
-  const descender = -baseline * UNITS_PER_PIXEL;
+
+  const pixelSize = UNITS_PER_EM / baseline;
+  const unitsPerEm = UNITS_PER_EM;
+  const ascender = Math.round(baseline * pixelSize);
+  const descender = -Math.round((gridHeight - baseline) * pixelSize);
 
   // Create notdef glyph (required)
   const notdefPath = new opentype.Path();
-  notdefPath.moveTo(0, 0);
-  notdefPath.lineTo(gridWidth * UNITS_PER_PIXEL, 0);
-  notdefPath.lineTo(gridWidth * UNITS_PER_PIXEL, gridHeight * UNITS_PER_PIXEL);
-  notdefPath.lineTo(0, gridHeight * UNITS_PER_PIXEL);
+  notdefPath.moveTo(0, descender);
+  notdefPath.lineTo(gridWidth * pixelSize, descender);
+  notdefPath.lineTo(gridWidth * pixelSize, ascender);
+  notdefPath.lineTo(0, ascender);
   notdefPath.closePath();
 
   const notdefGlyph = new opentype.Glyph({
     name: '.notdef',
     unicode: 0,
-    advanceWidth: (gridWidth + letterSpacing) * UNITS_PER_PIXEL,
+    advanceWidth: gridWidth * pixelSize,
     path: notdefPath,
   });
 
@@ -40,15 +41,15 @@ export function exportTTF(project: PixFontProject): void {
     for (let row = 0; row < pixels.length; row++) {
       for (let col = 0; col < pixels[row].length; col++) {
         if (pixels[row][col]) {
-          // Convert row to font coordinates (flip Y)
-          const fontY = (gridHeight - row - 1) * UNITS_PER_PIXEL;
-          const fontX = col * UNITS_PER_PIXEL;
+          // Convert row to font coordinates (flip Y, relative to baseline)
+          const fontY = (baseline - row - 1) * pixelSize;
+          const fontX = col * pixelSize;
 
           // Draw rectangle clockwise
           path.moveTo(fontX, fontY);
-          path.lineTo(fontX + UNITS_PER_PIXEL, fontY);
-          path.lineTo(fontX + UNITS_PER_PIXEL, fontY + UNITS_PER_PIXEL);
-          path.lineTo(fontX, fontY + UNITS_PER_PIXEL);
+          path.lineTo(fontX + pixelSize, fontY);
+          path.lineTo(fontX + pixelSize, fontY + pixelSize);
+          path.lineTo(fontX, fontY + pixelSize);
           path.closePath();
         }
       }
@@ -57,7 +58,7 @@ export function exportTTF(project: PixFontProject): void {
     const fontGlyph = new opentype.Glyph({
       name: char === ' ' ? 'space' : `uni${glyph.codePoint.toString(16).toUpperCase().padStart(4, '0')}`,
       unicode: glyph.codePoint,
-      advanceWidth: (gridWidth + letterSpacing) * UNITS_PER_PIXEL,
+      advanceWidth: gridWidth * pixelSize,
       path: path,
     });
 
